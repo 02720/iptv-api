@@ -1,0 +1,42 @@
+# 这是订阅源列表，每行一个订阅地址
+# This is a list of subscription sources, with one subscription address per line
+
+https://raw.githubusercontent.com/Guovin/iptv-database/master/result.txt
+https://raw.githubusercontent.com/iptv-org/iptv/gh-pages/countries/cn.m3u
+https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u
+https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u
+https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt
+https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt
+
+https://iptv-org.github.io/iptv/languages/zho.m3u
+https://github.com/ssili126/tv/raw/refs/heads/main/itvlist.txt
+https://github.com/mzky/checklist/raw/refs/heads/master/itvlist.m3u
+https://github.com/cymz6/AutoIPTV-Hotel/raw/refs/heads/main/lives.txt
+https://github.com/vbskycn/iptv/raw/refs/heads/master/tv/iptv6.txt
+https://live.fanmingming.cn/tv/m3u/ipv6.m3u
+https://github.com/yuanzl77/IPTV/raw/refs/heads/main/live.txt
+https://live.hacks.tools/tv/iptv4.txt
+https://live.hacks.tools/tv/iptv6.txt
+https://github.com/hujingguang/ChinaIPTV/raw/refs/heads/main/cnTV_AutoUpdate.m3u8
+https://github.com/skddyj/iptv/raw/refs/heads/main/IPTV.m3u
+https://github.com/kakaxi-1/IPTV/raw/refs/heads/main/iptv.txt
+https://github.com/kakaxi-1/IPTV/raw/refs/heads/main/ipv4.txt
+https://github.com/zwc456baby/iptv_alive/raw/refs/heads/master/live.txt
+https://github.com/zhi35/iptv/raw/refs/heads/master/iptv.m3u
+https://github.com/CCSH/IPTV/raw/refs/heads/main/live.txt
+https://github.com/Wirili/IPTV/raw/refs/heads/main/live.txt
+https://github.com/Supprise0901/TVBox_live/raw/refs/heads/main/live.txt
+https://huangsuming.github.io/iptv/list/tvlist.txt
+https://github.com/jiangnan1224/iptv_ipv4_live/raw/refs/heads/main/iptv.txt
+https://github.com/best-fan/iptv-sources/raw/refs/heads/main/cn_all.m3u8
+https://github.com/cs3306/IPTV-Sources/raw/refs/heads/main/data/output/iptv_collection.m3u
+http://117.72.68.25:9230/latest.txt
+https://vip.html-5.me/iptv.txt
+http://bxtv.3a.ink/live.txt
+
+
+[WHITELIST]
+# 以下是订阅源的白名单，白名单内的订阅源获取的接口将不会参与测速，始终保留至结果最前。
+# This is the whitelist for subscription sources. Subscription sources in the whitelist will not participate in speed testing and will always be retained at the front of the results.
+
+https://gitee.com/hyx2230/IPTV/raw/master/tv.txt

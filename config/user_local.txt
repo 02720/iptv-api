@@ -1,3 +1,4 @@
+CCTV1,http://aliyun-qhbu-live.bestvcdn.com.cn/live/program/live/cctv1hd8m/8000000/mnf.m3u8
 浙江卫视4K超高清,http://play-qukan.cztv.com/live/1758879019692345.m3u8
 浙江卫视,http://ali-m-l.cztv.com/channels/lantian/channel001/1080p.m3u8
 浙江卫视,http://120.76.248.139/live/bfgd/4200000094.m3u8

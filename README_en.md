@@ -25,6 +25,9 @@
   <a href="https://hub.docker.com/repository/docker/guovern/iptv-api">
     <img src="https://img.shields.io/docker/pulls/guovern/iptv-api?label=Docker%20Pulls" />
   </a>
+  <a href="https://github.com/Guovin/iptv-api/stargazers">
+    <img src="https://img.shields.io/github/stars/guovin/iptv-api?label=Stars" />
+  </a>
   <a href="https://github.com/Guovin/iptv-api/fork">
     <img src="https://img.shields.io/github/forks/guovin/iptv-api?label=Forks" />
   </a>
@@ -318,6 +321,8 @@ generated result files directly on the host. Append the following options to the
 | /hls/ipv6/txt      | hls ipv6 txt streaming endpoint      |
 | /hls/ipv6/m3u      | hls ipv6 m3u streaming endpoint      |
 | /stat              | Streaming status statistics endpoint |
+
+[How to use streaming?](./docs/tutorial_en.md#Streaming-Usage-Tutorial)
 
 ## Changelog
 

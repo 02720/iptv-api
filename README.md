@@ -25,6 +25,9 @@
   <a href="https://hub.docker.com/repository/docker/guovern/iptv-api">
     <img src="https://img.shields.io/docker/pulls/guovern/iptv-api?label=Docker%20Pulls" />
   </a>
+  <a href="https://github.com/Guovin/iptv-api/stargazers">
+    <img src="https://img.shields.io/github/stars/guovin/iptv-api?label=Stars" />
+  </a>
   <a href="https://github.com/Guovin/iptv-api/fork">
     <img src="https://img.shields.io/github/forks/guovin/iptv-api?label=Forks" />
   </a>
@@ -305,6 +308,8 @@ docker run -d -p 80:8080 guovern/iptv-api
 | /hls/ipv6/txt | 推流ipv6 txt接口 |
 | /hls/ipv6/m3u | 推流ipv6 m3u接口 |
 | /stat         | 推流状态统计接口     |
+
+[如何使用推流？](./docs/tutorial.md#推流使用教程)
 
 ## 更新日志
 

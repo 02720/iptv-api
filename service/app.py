@@ -212,10 +212,10 @@ def show_statistic_log():
     return response
 
 
-@app.route("/log/nomatch")
-def show_nomatch_log():
-    if os.path.exists(constants.nomatch_log_path):
-        with open(constants.nomatch_log_path, "r", encoding="utf-8") as file:
+@app.route("/log/unmatch")
+def show_unmatch_log():
+    if os.path.exists(constants.unmatch_log_path):
+        with open(constants.unmatch_log_path, "r", encoding="utf-8") as file:
             content = file.read()
     else:
         content = constants.waiting_tip
@@ -302,7 +302,7 @@ def run_service():
                     print(t("msg.rtmp_full_api").format(mode=m, api=f"{public_url}/hls"))
                 else:
                     print(t("msg.full_api").format(mode=m, api=public_url))
-            app.run(host="127.0.0.1", port=config.app_port)
+            app.run(host="0.0.0.0", port=config.app_port)
     except Exception as e:
         print(t("msg.error_service_start_failed").format(info=e))
 

@@ -31,7 +31,8 @@ from utils.tools import (
     get_public_url,
     parse_times,
     to_serializable,
-    get_subscribe_entries
+    get_subscribe_entries,
+    count_disabled_urls,
 )
 from utils.types import CategoryChannelData
 from utils.whitelist import load_whitelist_maps
@@ -129,6 +130,7 @@ class UpdateSource:
     # ----------------------------
     async def _fetch_subscribe(self, channel_names: list[str]):
         whitelist_entries, default_entries = get_subscribe_entries(constants.subscribe_path)
+        disabled_count = count_disabled_urls(constants.subscribe_path)
 
         seen = set()
         subscribe_entries = []
@@ -143,6 +145,7 @@ class UpdateSource:
             t("msg.subscribe_urls_whitelist_total").format(
                 default_count=len(default_entries),
                 whitelist_count=len(whitelist_entries),
+                disabled_count=disabled_count,
                 total=len(subscribe_entries),
             )
         )
@@ -217,8 +220,12 @@ class UpdateSource:
         """
         Run speed test on the channel data and return the test results.
         """
-        urls_total = get_urls_len(self.channel_data)
-        test_data = copy.deepcopy(self.channel_data)
+        test_data = {
+            category: copy.deepcopy(items)
+            for category, items in self.channel_data.items()
+            if category != t("content.unmatch_channel")
+        }
+        urls_total = get_urls_len(test_data)
 
         process_nested_dict(
             test_data,
@@ -423,7 +430,7 @@ class UpdateSource:
 
 if __name__ == "__main__":
     info = get_version_info()
-    print(t("msg.version_info").format(name=info["name"], version=info["version"]))
+    print(t("msg.version_info").format(name=info["name"], version=info["version"], build_time=info["build_time"]))
     if not config.open_update:
         print(t("msg.update_disabled"))
     else:

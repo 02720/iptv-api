@@ -7,6 +7,8 @@
     ⚡️ IPTV live-source automatic update platform — 🤖 fully automated collection, filtering, speed-testing, and generation 🚀. Supports extensive personalized configuration; paste the resulting address into a player to watch.
 </p>
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/govin)
+
 <p align="center">
     <br>
     <a href="https://trendshift.io/repositories/12327" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12327" alt="Guovin%2Fiptv-api | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -56,14 +58,11 @@
 - [⚖️ License](#license)
 
 > [!IMPORTANT]
-> 1. ⚠️ Due to an excessive number of forks, GitHub resource usage has reached its limit, and the workflow has been
-     changed to manual trigger. Please update [main.yml](./.github/workflows/main.yml) as soon as possible to remove the
-     scheduled task; otherwise the workflow may be disabled!
-> 2. Go to the `Govin` WeChat public account and reply with `cdn` to get an acceleration address to improve access speed
+> 1. Go to the `Govin` WeChat public account and reply with `cdn` to get an acceleration address to improve access speed
      for subscription sources and channel logos.
-> 3. This project does not provide data sources. Please add your own before generating
+> 2. This project does not provide data sources. Please add your own before generating
      results. ([How to add data sources?](./docs/tutorial_en.md#Add-data-sources-and-more))
-> 4. The quality of generated results depends on the data sources and network conditions; please adjust
+> 3. The quality of generated results depends on the data sources and network conditions; please adjust
      the [configuration](#Config) accordingly to obtain results that better meet your needs.
 
 ## Core Features
@@ -72,7 +71,7 @@
 |:------------------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Custom templates**          |    ✅    | Generate custom channel playlists                                                                                                                           |
 | **Channel aliases**           |    ✅    | Improve channel matching and accuracy, supports regular expressions                                                                                         |
-| **Multi-source aggregation**  |    ✅    | Local sources and subscription sources (supports setting the User-Agent header)                                                                             |
+| **Multi-source aggregation**  |    ✅    | Local sources and subscription sources (supports UA configuration, detects invalid addresses and automatically disables them)                               |
 | **Stream relay**              |    ✅    | Improve playback on weak networks, supports direct browser playback, and automatic transcoding/adaptation                                                   |
 | **Replay/VOD interfaces**     |    ✅    | Fetching and generating replay/VOD interfaces                                                                                                               |
 | **EPG**                       |    ✅    | Fetch and display channel program guides                                                                                                                    |
@@ -89,6 +88,9 @@
 > [!NOTE]\
 > The following configuration items are located in `config/config.ini` and can be modified via the configuration file or
 > environment variables. Save changes and restart to apply.
+
+<details>
+<summary>Click to expand configuration parameters</summary>
 
 | Configuration Item       | Description                                                                                                                                                                                                                                                                                                                                 | Default Value                            |
 |:-------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------|
@@ -144,12 +146,14 @@
 | subscribe_num            | Preferred number of subscription source interfaces in the result.                                                                                                                                                                                                                                                                           | 10                                       |
 | logo_url                 | Channel logo library URL.                                                                                                                                                                                                                                                                                                                   |                                          |
 | logo_type                | Channel logo file type.                                                                                                                                                                                                                                                                                                                     | png                                      |
-| open_rtmp                | Enable RTMP push function. Requires FFmpeg installed, uses local bandwidth to improve playback experience.                                                                                                                                                                                                                                  | True                                     |
+| open_rtmp                | Enable RTMP push function. Recommended only for owned or authorized content. Requires FFmpeg installed and uses local bandwidth to improve playback experience.                                                                                                                                                                            | True                                     |
 | nginx_http_port          | Nginx HTTP service port, used for the HTTP service of RTMP push forwarding.                                                                                                                                                                                                                                                                 | 8080                                     |
 | nginx_rtmp_port          | Nginx RTMP service port, used for the RTMP service of RTMP push forwarding.                                                                                                                                                                                                                                                                 | 1935                                     |
 | rtmp_idle_timeout        | RTMP channel idle stop-streaming timeout in seconds. When no one watches for longer than this duration, streaming is stopped, helping reduce server resource usage.                                                                                                                                                                         | 300                                      |
 | rtmp_max_streams         | Maximum number of concurrent RTMP push streams. Controls how many channels can be pushed at the same time. Larger values increase server load; tune to optimize resource usage.                                                                                                                                                             | 10                                       |
 | rtmp_transcode_mode      | Push streaming transcoding mode. `copy` means no transcoding — output is copied to save CPU consumption as much as possible. `auto` means adaptive transcoding to match players; this increases CPU usage but can improve compatibility.                                                                                                    | copy                                     |
+
+</details>
 
 ## Quick Start
 
@@ -308,9 +312,13 @@ generated result files directly on the host. Append the following options to the
 > 1. If deploying on a server, be sure to set the `PUBLIC_DOMAIN` environment variable to the server's domain name or IP
      address and the `PUBLIC_PORT` environment variable to the public port; otherwise the streaming addresses will not
      be accessible.
-> 2. When streaming is enabled, obtained interfaces (e.g., subscription sources) will be streamed by default.
+> 2. When streaming is enabled, obtained interfaces (e.g., subscription sources) will be streamed by default; only use
+     this for content you own, are explicitly authorized to redistribute, or need for closed/internal testing.
 > 3. To stream local video sources, create an `hls` folder under the `config` directory and place video files named
      after the channel; the program will automatically stream them to the corresponding channels.
+> 4. When using this project in Mainland China, make sure the content authorization, copyright, network-audiovisual,
+     and broadcasting-related compliance requirements are satisfied. Do not use it to distribute, relay, or publicly
+     expose unauthorized live streams or program sources.
 
 | Streaming Endpoint | Description                          |
 |:-------------------|:-------------------------------------|
@@ -355,22 +363,27 @@ Contact via email: `360996299@qq.com`
 
 <div>Development and maintenance are not easy, please buy me a coffee ~</div>
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/govin)
+
 | Alipay                                | Wechat                                    |
 |---------------------------------------|-------------------------------------------|
 | ![Alipay](./static/images/alipay.jpg) | ![Wechat](./static/images/appreciate.jpg) |
 
 ## Disclaimer
 
-- This project is provided as a tool/framework only; it does not include or provide any live streams, copyrighted
-  programs, or other third-party content. Users must add their own data sources and ensure that the data sources used
-  and their use comply with applicable laws and regulations in their jurisdiction.
-- Users are solely responsible for any content obtained, distributed, or played through this project. Do not use it to
-  distribute, share, or watch copyrighted content without authorization.
+- This project is provided as a tool/framework only; it does not include, host, cache, or guarantee any live streams,
+  copyrighted programs, or other third-party content. Users must add their own data sources and ensure that the data
+  sources used and their use comply with applicable laws and regulations in their jurisdiction.
+- Users are solely responsible for any content obtained, distributed, relayed, or played through this project. Do not
+  use it to distribute, share, relay, or watch copyrighted content without authorization, especially in Mainland China
+  where content authorization, licensing, filing/permit, and other regulatory requirements may apply.
+- The RTMP/HLS push features are intended only for owned content, explicitly authorized content, or closed-environment
+  technical testing. If you cannot verify authorization, disable `open_rtmp` and do not expose the related endpoints to
+  the public internet.
 - When using this project, comply with local laws, regulations, and supervisory requirements. The author is not liable
   for any legal responsibility arising from users' use of this project.
-- For commercial, corporate, or production use, it is recommended to consult legal counsel and perform a compliance
-  review.
+- For commercial, corporate, or production use, consult compliance/legal counsel and complete a review.
 
 ## License
 
-[MIT](./LICENSE) License &copy; 2024-PRESENT [Govin](https://github.com/guovin)
+[AGPL-3.0](./LICENSE) License &copy; 2024-PRESENT [Govin](https://github.com/guovin)

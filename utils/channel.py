@@ -958,11 +958,11 @@ def generate_channel_statistic(logger, cate, name, values):
     if config.open_full_speed_test:
         content = f"{f"{t('name.category')}: {cate}, {t('name.name')}: {name}, {t('name.total')}: {total}, {t('name.valid')}: {valid}, {t('name.valid_percent')}: {valid_rate:.2f}%, IPv4: {ipv4_count}, IPv6: {ipv6_count}, {t('name.min_delay')}: {min_delay} ms, {t('name.max_speed')}: {max_speed:.2f} M/s, {t('name.average_speed')}: {avg_speed:.2f} M/s, {t('name.max_resolution')}: {max_resolution}, {t('name.avg_fps')}: {f"{avg_fps:.2f}" if avg_fps is not None else t('name.unknown')}, {t('name.video_codec')}: {most_video_str}, {t('name.audio_codec')}: {most_audio_str}"}"
         logger.info(content)
-        print(content)
+        print(f"📊 {content}")
     else:
         content = f"{f"{t('name.category')}: {cate}, {t('name.name')}: {name}, {t('name.valid')}: {valid}, IPv4: {ipv4_count}, IPv6: {ipv6_count}, {t('name.min_delay')}: {min_delay} ms, {t('name.max_speed')}: {max_speed:.2f} M/s, {t('name.average_speed')}: {avg_speed:.2f} M/s, {t('name.max_resolution')}: {max_resolution}, {t('name.avg_fps')}: {f"{avg_fps:.2f}" if avg_fps is not None else t('name.unknown')}, {t('name.video_codec')}: {most_video_str}, {t('name.audio_codec')}: {most_audio_str}"}"
         logger.info(content)
-        print(content)
+        print(f"📊 {content}")
 
 
 def process_write_content(
@@ -1100,12 +1100,12 @@ def process_write_content(
             with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
         except Exception as e:
-            print(t("msg.write_error").format(info=e))
+            print(t("msg.write_error").format(info=e), flush=True)
             return
     try:
         convert_to_m3u(path, first_channel_name, data=result_data)
     except Exception as e:
-        print(t("msg.write_error").format(info=f"convert m3u error: {e}"))
+        print(t("msg.write_error").format(info=f"convert m3u error: {e}"), flush=True)
 
 
 def write_channel_to_file(data, ipv6=False, first_channel_name=None, skip_print=False, is_last=False):
@@ -1114,7 +1114,7 @@ def write_channel_to_file(data, ipv6=False, first_channel_name=None, skip_print=
     """
     try:
         if not skip_print:
-            print(t("msg.writing_result"))
+            print(t("msg.writing_result"), flush=True)
         open_empty_category = config.open_empty_category
         ipv_type_prefer = list(config.ipv_type_prefer)
         if any(pref == "auto" for pref in ipv_type_prefer):
@@ -1156,6 +1156,6 @@ def write_channel_to_file(data, ipv6=False, first_channel_name=None, skip_print=
                 is_last=is_last
             )
         if not skip_print:
-            print(t("msg.write_success"))
+            print(t("msg.write_success"), flush=True)
     except Exception as e:
-        print(t("msg.write_error").format(info=e))
+        print(t("msg.write_error").format(info=e), flush=True)

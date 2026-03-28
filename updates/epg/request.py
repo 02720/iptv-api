@@ -7,8 +7,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from threading import Lock
 from time import time
+import sys
 
-from requests import Session, exceptions
+from requests import Session
 from tqdm.asyncio import tqdm_asyncio
 
 import utils.constants as constants
@@ -122,6 +123,10 @@ async def get_epg(names=None, callback=None):
     pbar = tqdm_asyncio(
         total=urls_len,
         desc=t("pbar.getting_name").format(name=t("name.epg")),
+        file=sys.stdout,
+        mininterval=0,
+        miniters=1,
+        dynamic_ncols=False,
     )
     start_time = time()
     result = defaultdict(list)
@@ -137,7 +142,7 @@ async def get_epg(names=None, callback=None):
             return
         with disabled_lock:
             disabled_urls.add(source_url)
-        print(t("msg.auto_disable_source").format(name=t("name.epg"), url=source_url, reason=reason))
+        print(t("msg.auto_disable_source").format(name=t("name.epg"), url=source_url, reason=reason), flush=True)
 
     def process_run(entry):
         nonlocal all_result_verify, result
@@ -153,8 +158,8 @@ async def get_epg(names=None, callback=None):
                     lambda: session.get(request_url, timeout=config.request_timeout, headers=headers),
                     name=request_url,
                 )
-            except exceptions.Timeout:
-                print(t("msg.request_timeout").format(name=request_url))
+            except Exception as e:
+                print(e, flush=True)
                 disable_reason = t("msg.auto_disable_request_failed")
             if response:
                 content = _normalize_epg_content(response.content, request_url=request_url, response=response)
@@ -178,7 +183,7 @@ async def get_epg(names=None, callback=None):
             elif not disable_reason:
                 disable_reason = t("msg.auto_disable_request_failed")
         except Exception as e:
-            print(t("msg.error_name_info").format(name=request_url, info=e))
+            print(t("msg.error_name_info").format(name=request_url, info=e), flush=True)
             if not disable_reason:
                 disable_reason = t("msg.auto_disable_request_failed")
         finally:
@@ -200,8 +205,12 @@ async def get_epg(names=None, callback=None):
             executor.submit(process_run, entry)
     session.close()
     pbar.close()
+    active_count = len(entries)
+    disabled_count = 0
     if disabled_urls:
-        disabled_count = disable_urls_in_file(constants.epg_path, disabled_urls)
-        if disabled_count:
-            print(t("msg.auto_disable_source_done").format(name=t("name.epg"), count=disabled_count))
+        counts = disable_urls_in_file(constants.epg_path, disabled_urls)
+        active_count = counts["active"]
+        disabled_count = counts["disabled"]
+    print(t("msg.auto_disable_source_done").format(name=t("name.epg"), active_count=active_count,
+                                                   disabled_count=disabled_count), flush=True)
     return result

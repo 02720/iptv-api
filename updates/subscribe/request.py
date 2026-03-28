@@ -2,8 +2,9 @@ import os
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from logging import INFO
-from time import time
 from threading import Lock
+from time import time
+import sys
 
 from tqdm.asyncio import tqdm_asyncio
 
@@ -27,10 +28,7 @@ from utils.tools import (
 async def get_channels_by_subscribe_urls(
         urls,
         names=None,
-        retry=True,
-        error_print=True,
         whitelist=None,
-        pbar_desc=t("pbar.getting_name").format(name=t("name.subscribe")),
         callback=None,
 ):
     """
@@ -63,7 +61,11 @@ async def get_channels_by_subscribe_urls(
     subscribe_urls_len = len(urls)
     pbar = tqdm_asyncio(
         total=subscribe_urls_len,
-        desc=pbar_desc,
+        desc=t("pbar.getting_name").format(name=t("name.subscribe")),
+        file=sys.stdout,
+        mininterval=0,
+        miniters=1,
+        dynamic_ncols=False,
     )
     start_time = time()
     mode_name = t("name.subscribe")
@@ -85,11 +87,12 @@ async def get_channels_by_subscribe_urls(
             return
         with disabled_lock:
             disabled_urls.add(source_url)
-        print(t("msg.auto_disable_source").format(name=mode_name, url=source_url, reason=reason))
+        print(t("msg.auto_disable_source").format(name=mode_name, url=source_url, reason=reason), flush=True)
 
     def process_subscribe_channels(subscribe_info: str | dict) -> defaultdict:
         subscribe_url = subscribe_info.get('url') if isinstance(subscribe_info, dict) else subscribe_info
-        source_url = subscribe_info.get('source_url', subscribe_url) if isinstance(subscribe_info, dict) else subscribe_url
+        source_url = subscribe_info.get('source_url', subscribe_url) if isinstance(subscribe_info,
+                                                                                   dict) else subscribe_url
         headers = subscribe_info.get('headers') if isinstance(subscribe_info, dict) else None
         channels = defaultdict(list)
         in_whitelist = whitelist and (subscribe_url in whitelist)
@@ -97,14 +100,10 @@ async def get_channels_by_subscribe_urls(
         try:
             response = None
             try:
-                if retry:
-                    response = retry_func(lambda: get_soup_requests(subscribe_url, timeout=request_timeout,
-                                                                    headers_override=headers), name=subscribe_url)
-                else:
-                    response = get_soup_requests(subscribe_url, timeout=request_timeout,
-                                                 headers_override=headers)
+                response = retry_func(lambda: get_soup_requests(subscribe_url, timeout=request_timeout,
+                                                                headers_override=headers), name=subscribe_url)
             except Exception as e:
-                print(f"{subscribe_url}: {e}")
+                print(e, flush=True)
                 disable_reason = t("msg.auto_disable_request_failed")
             if response:
                 if hasattr(response, 'text'):
@@ -156,8 +155,7 @@ async def get_channels_by_subscribe_urls(
                 if not channels and not disable_reason:
                     disable_reason = t("msg.auto_disable_no_match")
         except Exception as e:
-            if error_print:
-                print(f"Error on {subscribe_url}: {e}")
+            print(t("msg.error_name_info").format(name=subscribe_url, info=e), flush=True)
             if not disable_reason:
                 disable_reason = t("msg.auto_disable_request_failed")
         finally:
@@ -183,9 +181,13 @@ async def get_channels_by_subscribe_urls(
         for future in futures:
             subscribe_results = merge_objects(subscribe_results, future.result())
         pbar.close()
+        active_count = len(urls)
+        disabled_count = 0
         if disabled_urls:
-            disabled_count = disable_urls_in_file(constants.subscribe_path, disabled_urls)
-            if disabled_count:
-                print(t("msg.auto_disable_source_done").format(name=mode_name, count=disabled_count))
+            counts = disable_urls_in_file(constants.subscribe_path, disabled_urls)
+            active_count = counts["active"]
+            disabled_count = counts["disabled"]
+        print(t("msg.auto_disable_source_done").format(name=mode_name, active_count=active_count,
+                                                       disabled_count=disabled_count), flush=True)
         close_logger_handlers(logger)
         return subscribe_results

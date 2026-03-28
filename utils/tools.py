@@ -646,19 +646,14 @@ def get_name_value(content, pattern, open_headers=False, check_value=True):
     :param check_value: bool, whether to validate the presence of a URL.
     """
     result = []
-    for match in pattern.finditer(content):
-        group_dict = match.groupdict()
-        name = (group_dict.get("name", "") or "").strip()
-        value = (group_dict.get("value", "") or "").strip()
+
+    def append_item(name, value, attributes):
         if not name or (check_value and not value):
-            continue
-        data = {"name": name, "value": value}
-        attributes = {**get_headers_key_value(group_dict.get("attributes", "")),
-                      **get_headers_key_value(group_dict.get("options", ""))}
+            return
         headers = {
             "User-Agent": attributes.get("useragent", ""),
             "Referer": attributes.get("referer", ""),
-            "Origin": attributes.get("origin", "")
+            "Origin": attributes.get("origin", ""),
         }
         catchup = {
             "catchup": attributes.get("catchup", ""),
@@ -667,11 +662,88 @@ def get_name_value(content, pattern, open_headers=False, check_value=True):
         headers = {k: v for k, v in headers.items() if v}
         catchup = {k: v for k, v in catchup.items() if v}
         if not open_headers and headers:
-            continue
+            return
+        item = {"name": name, "value": value, "catchup": catchup}
         if open_headers:
-            data["headers"] = headers
-        data["catchup"] = catchup
-        result.append(data)
+            item["headers"] = headers
+        result.append(item)
+
+    if pattern is constants.multiline_m3u_pattern:
+        lines = content.splitlines()
+        index = 0
+        total = len(lines)
+
+        while index < total:
+            raw_line = lines[index]
+            stripped = raw_line.strip()
+            if not stripped.startswith("#EXTINF:-1"):
+                index += 1
+                continue
+
+            remainder = stripped[len("#EXTINF:-1"):].strip()
+            if not remainder:
+                index += 1
+                continue
+
+            in_quote = None
+            separator_index = None
+            for pos, char in enumerate(remainder):
+                if char in ('"', "'"):
+                    if in_quote == char:
+                        in_quote = None
+                    elif in_quote is None:
+                        in_quote = char
+                elif char == ',' and in_quote is None:
+                    separator_index = pos
+                    break
+
+            if separator_index is None:
+                separator_index = remainder.rfind(',')
+                if separator_index < 0:
+                    index += 1
+                    continue
+
+            attributes_text = remainder[:separator_index].strip()
+            name = remainder[separator_index + 1:].strip()
+            index += 1
+
+            options_lines = []
+            value = ""
+            while index < total:
+                candidate_raw = lines[index]
+                candidate = candidate_raw.strip()
+
+                if not candidate:
+                    index += 1
+                    continue
+
+                if candidate.startswith("#EXTVLCOPT:"):
+                    options_lines.append(candidate)
+                    index += 1
+                    continue
+
+                if candidate.startswith("#EXTINF:-1"):
+                    break
+
+                value = candidate
+                index += 1
+                break
+
+            if not name or (check_value and not value):
+                continue
+
+            attributes = get_headers_key_value("\n".join([part for part in [attributes_text, *options_lines] if part]))
+            append_item(name, value, attributes)
+
+        return result
+
+    for match in pattern.finditer(content):
+        group_dict = match.groupdict()
+        name = (group_dict.get("name", "") or "").strip()
+        value = (group_dict.get("value", "") or "").strip()
+        attributes = {**get_headers_key_value(group_dict.get("options", "")),
+                      **get_headers_key_value(group_dict.get("attributes", ""))}
+        append_item(name, value, attributes)
     return result
 
 
@@ -899,6 +971,7 @@ def custom_print(*args, **kwargs):
     Custom print
     """
     if not custom_print.disable:
+        kwargs.setdefault("flush", True)
         print(*args, **kwargs)
 
 
@@ -1178,51 +1251,118 @@ def count_disabled_urls(path: str) -> int:
     return disabled_count
 
 
-def disable_urls_in_file(path: str, urls: Iterable[str]) -> int:
+def disable_urls_in_file(path: str, urls: Iterable[str]) -> dict[str, int]:
     """
-    Comment out matching url lines in the config file and return how many were changed.
+    Comment out matching url lines in the config file and return counts.
+    Returns: {"disabled": <disabled_count>, "active": <active_count>}
+    Disabled urls are moved after active urls within the same section, separated by one blank line.
     """
     target_urls = {url.strip() for url in urls if url and str(url).strip()}
     if not target_urls:
-        return 0
+        return {"disabled": 0, "active": 0}
 
     real_path = get_real_path(resource_path(path))
     if not os.path.exists(real_path):
-        return 0
+        return {"disabled": 0, "active": 0}
+
+    header_re = re.compile(r"^\s*\[.*]\s*$")
 
     try:
         with open(real_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
-        updated = False
+        newline = "\r\n" if any(line.endswith("\r\n") for line in lines) else "\n"
+
+        def new_section(header=None):
+            return {"header": header, "misc": [], "active": [], "disabled": []}
+
+        sections = [new_section()]
         disabled_count = 0
-        new_lines = []
+        active_count = 0
 
         for raw in lines:
-            line = raw.rstrip("\r\n")
-            line_end = raw[len(line):]
-            stripped = line.lstrip()
-            if not stripped or stripped.startswith("#"):
-                new_lines.append(raw)
+            stripped = raw.strip()
+
+            if not stripped:
+                continue
+
+            if header_re.match(stripped):
+                sections.append(new_section(raw.rstrip("\r\n")))
+                continue
+
+            current = sections[-1]
+            indent = raw[: len(raw) - len(raw.lstrip())]
+
+            if stripped.startswith("#"):
+                commented = stripped.lstrip("#").strip()
+                match = constants.url_pattern.search(commented)
+                if match:
+                    url = match.group("url").strip()
+                    if url in target_urls:
+                        current["disabled"].append((indent, url))
+                        disabled_count += 1
+                    else:
+                        current["misc"].append(raw.rstrip("\r\n"))
+                else:
+                    current["misc"].append(raw.rstrip("\r\n"))
                 continue
 
             match = constants.url_pattern.search(stripped)
-            if match and match.group("url").strip() in target_urls:
-                indent = line[: len(line) - len(stripped)]
-                new_lines.append(f"{indent}# {stripped}{line_end}")
-                disabled_count += 1
-                updated = True
+            if match:
+                url = match.group("url").strip()
+                if url in target_urls:
+                    current["disabled"].append((indent, url))
+                    disabled_count += 1
+                else:
+                    current["active"].append(raw.rstrip("\r\n"))
+                    active_count += 1
             else:
-                new_lines.append(raw)
+                current["misc"].append(raw.rstrip("\r\n"))
 
-        if updated:
+        output_lines = []
+        for section in sections:
+            section_lines = []
+
+            if section["header"] is not None:
+                if output_lines and output_lines[-1] != "":
+                    output_lines.append("")
+                output_lines.append(section["header"])
+
+            section_lines.extend(section["misc"])
+            section_lines.extend(section["active"])
+
+            if section_lines and section["disabled"]:
+                if section_lines[-1] != "":
+                    section_lines.append("")
+
+            section_lines.extend(f"{indent}# {url}" for indent, url in section["disabled"])
+
+            cleaned_lines = []
+            prev_blank = False
+            for line in section_lines:
+                if not line.strip():
+                    if not prev_blank:
+                        cleaned_lines.append("")
+                    prev_blank = True
+                else:
+                    cleaned_lines.append(line)
+                    prev_blank = False
+
+            output_lines.extend(cleaned_lines)
+
+        new_content = newline.join(output_lines)
+        if lines and lines[-1].endswith(("\n", "\r")):
+            new_content += newline
+
+        original_content = "".join(lines)
+        if new_content != original_content:
             with open(real_path, "w", encoding="utf-8") as f:
-                f.writelines(new_lines)
+                f.write(new_content)
 
-        return disabled_count
+        return {"disabled": disabled_count, "active": active_count}
     except Exception as e:
         print(f"Failed to auto-disable urls in {real_path}: {e}")
-        return 0
+        return {"disabled": 0, "active": 0}
 
 
 def close_logger_handlers(logger) -> None:

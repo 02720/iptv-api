@@ -4,7 +4,8 @@
 浙江卫视,http://ali-xwl.cztv.com/live/channel011080Pnew.m3u8
 镇江新闻综合,http://zjtv-wshls.homecdn.com/live/2aa50.m3u8
 镇江教育民生,http://zjtv-wshls.homecdn.com/live/2aa16.m3u8
-宝鸡综合频道,https://zycfcdn.gdwlcloud.com/PLTV/88888888/224/3221226038/index.m3u8?servicetype=1
+宝鸡综合频道,https://zycfcdn.gdwlcloud.com/PLTV/88888888/224/3221226038/index.m3u8
+汉中综合频道,http://zycfcdn.gdwlcloud.com/PLTV/88888888/224/3221226006/index.m3u8
 CCTV1,http://aliyun-qhbu-live.bestvcdn.com.cn/live/program/live/cctv1hd8m/8000000/mnf.m3u8
 湖南卫视4K超高清,http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/dWlwPTEyNy4wLjAuMSZ1aWQ9cWluZy1jbXMmbm5fdGltZXpvbmU9OCZjZG5leF9pZD1hbF9obHNfbGR2dCZ1dWlkPTliODY4NmU5ZTM2YzYwMmMmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8
 浙江卫视4K超高清,http://play-qukan.cztv.com/live/1758879019692345.m3u8

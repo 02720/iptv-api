@@ -61,6 +61,7 @@ def parse_epg(epg_content):
 
     channels = {}
     programmes = defaultdict(list)
+    now_by_timezone = {}
 
     for channel in root.findall('channel'):
         channel_id = channel.get('id')
@@ -74,14 +75,17 @@ def parse_epg(epg_content):
         channel_stop = datetime.strptime(
             re.sub(r'\s+', '', programme.get('stop')), "%Y%m%d%H%M%S%z")
 
-        now = datetime.now(channel_start.tzinfo) if channel_start.tzinfo else datetime.now()
+        timezone = channel_start.tzinfo
+        if timezone not in now_by_timezone:
+            now_by_timezone[timezone] = datetime.now(timezone) if timezone else datetime.now()
+        now = now_by_timezone[timezone]
         if channel_start < (now - timedelta(days=7)):
             continue
 
         channel_text = opencc_t2s.convert(programme.find('title').text)
-        channel_elem = ET.SubElement(
-            root, 'programme', attrib={"channel": channel_id, "start": channel_start.strftime("%Y%m%d%H%M%S +0800"),
-                                       "stop": channel_stop.strftime("%Y%m%d%H%M%S +0800")})
+        channel_elem = ET.Element(
+            'programme', attrib={"channel": channel_id, "start": channel_start.strftime("%Y%m%d%H%M%S +0800"),
+                                 "stop": channel_stop.strftime("%Y%m%d%H%M%S +0800")})
         channel_elem_s = ET.SubElement(
             channel_elem, 'title', attrib={"lang": "zh"})
         channel_elem_s.text = channel_text
@@ -131,7 +135,7 @@ async def get_epg(names=None, callback=None, extra_entries=None):
         total=urls_len,
         desc=t("pbar.getting_name").format(name=t("name.epg")),
         file=sys.stdout,
-        mininterval=0,
+        mininterval=1.0,
         miniters=1,
         dynamic_ncols=False,
     )
@@ -217,10 +221,10 @@ async def get_epg(names=None, callback=None, extra_entries=None):
                     int((pbar.n / urls_len) * 100),
                 )
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=config.performance_settings.fetch_workers) as executor:
         for entry in configured_entries:
             executor.submit(process_run, entry)
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=config.performance_settings.fetch_workers) as executor:
         for entry in discovered_entries:
             executor.submit(process_run, entry)
     session.close()
